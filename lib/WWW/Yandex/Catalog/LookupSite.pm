@@ -9,7 +9,7 @@ use strict;
 #use warnings;
 
 use vars qw($VERSION);
-$VERSION    = '0.02';
+$VERSION    = '0.03';
 
 use LWP::Simple;
 
@@ -155,7 +155,7 @@ WWW::Yandex::Catalog::LookupSite - Query Yandex Catalog for a website's presence
 
 =head1 DESCRIPTION
 
-The C<WWW::Yandex::Catalog::LookupSite> module retrieves website's Thematic Index of Citing, and checks website's presence in Yandex Catalog, and retrieves it's descriptions as recorded in the catalog, and the list of categories it belongs to.
+The C<WWW::Yandex::Catalog::LookupSite> module retrieves website's Thematic Index of Citing, and checks website's presence in Yandex Catalog, retrieves it's descriptions as recorded in the catalog, and the list of categories it belongs to.
 
 This module uses C<LWP::Simple> for making requests to Yandex Catalog.
 
@@ -225,7 +225,7 @@ Returns C<1> if any categories has been retrieved; C<0> otherwise.
 
 =head2 $site->short_description
 
-=head2 $site->long_description>
+=head2 $site->long_description
 
 =head2 $site->categories
 
