@@ -1,10 +1,13 @@
 Revision history for WWW-Yandex-Catalog-LookupSite
 
+0.04    4:40 AM 5/27/2010
+        Minor fixes in documentation, as t/pod-coverage.t was failing during installation.
+        No code changes.
 0.03    1:34 AM 2/12/2010
         Minor fixes to documentation, still learning to package for CPAN :)
         No code changes.
 0.02    11:25 AM 2/7/2010
         Fixed packaging. No changes to the code.
 0.01    00:00 AM 1/30/2010
-        First version, released on an unsuspecting world.
+        First version released on an unsuspecting world.
 

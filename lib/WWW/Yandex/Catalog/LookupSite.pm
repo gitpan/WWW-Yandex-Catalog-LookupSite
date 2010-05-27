@@ -1,6 +1,6 @@
 package WWW::Yandex::Catalog::LookupSite;
 
-# Last updated January 30, 2010
+# Last updated May 27, 2010
 #
 # Author:       Irakliy Sunguryan ( www.sochi-travel.info )
 # Date Created: January 30, 2010
@@ -9,7 +9,7 @@ use strict;
 #use warnings;
 
 use vars qw($VERSION);
-$VERSION    = '0.03';
+$VERSION    = '0.04';
 
 use LWP::Simple;
 
@@ -138,7 +138,6 @@ __END__
 
 WWW::Yandex::Catalog::LookupSite - Query Yandex Catalog for a website's presence, it's Index of Citing, descriptions in the catalog, and the list of categories it belongs to.
 
-
 =head1 SYNOPSIS
 
     use WWW::Yandex::Catalog::LookupSite;
@@ -172,14 +171,16 @@ Every website in the Yandex Catalog will belong to at least one I<category>. It 
 
 =head1 CONSTRUCTOR
 
+=head2 WWW::Yandex::Catalog::LookupSite->new()
+
 Creates and returns a new C<WWW::Yandex::Catalog::LookupSite> object.
 
     my $site = WWW::Yandex::Catalog::LookupSite->new();
 
-    
+
 =head1 DATA-FETCHING METHODS
 
-=head2 $site->yaca_lookup( $uri )
+=head2 $site-E<gt>yaca_lookup( $uri )
 
 Given a URL/URI, strips unnessesary data from it (scheme, authentication, port, and query), fetches Yandex Catalog with it, and parses results for data.
 
@@ -204,7 +205,7 @@ Returned only when site is present in catalog (in UTF8 encoding); C<undef> other
 
 =item B<Long Description>
 
-Can be C<undef> when site is present in catalog! Not all sites in the catalog have long description. Returned in in UTF8 encoding.
+Can be C<undef> when site is present in catalog -- not all sites in the catalog have long description. Returned in UTF8 encoding.
 
 =item B<Categories>
 
@@ -215,19 +216,28 @@ Empty list is returned when site is not present in catalog. At least one entry w
 
 =head1 CONVENIENCE METHODS
 
-These methods can be called only after C<$site->yaca_lookup( $uri )>
+These methods can be called only after C<$site-E<gt>yaca_lookup( $uri )>
 
-=head2 $site->is_in_catalog
+=head2 $site-E<gt>is_in_catalog
 
 Returns C<1> if any categories has been retrieved; C<0> otherwise.
 
-=head2 $site->tic
+=head2 $site-E<gt>tic
 
-=head2 $site->short_description
+=for comment
+Self explanatory. This comment is here to shut the podchecker up.
 
-=head2 $site->long_description
+=head2 $site-E<gt>short_description
 
-=head2 $site->categories
+=for comment
+Self explanatory. This comment is here to shut the podchecker up.
+
+=head2 $site-E<gt>long_description
+
+=for comment
+Self explanatory. This comment is here to shut the podchecker up.
+
+=head2 $site-E<gt>categories
 
     print $site->tic . "\n";
     if( $site->is_in_catalog ) {
