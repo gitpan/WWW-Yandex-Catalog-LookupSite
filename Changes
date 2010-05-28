@@ -1,5 +1,8 @@
 Revision history for WWW-Yandex-Catalog-LookupSite
 
+0.06    5:30 AM 5/28/2010
+        Bumped module version. I suck at this :(
+        No code changes.
 0.05    5:15 AM 5/28/2010
         Added LWP::Simple to Makefile.PL's prerequisites list.
         No code changes.
