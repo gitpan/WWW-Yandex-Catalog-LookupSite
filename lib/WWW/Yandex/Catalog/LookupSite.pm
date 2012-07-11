@@ -1,15 +1,15 @@
 package WWW::Yandex::Catalog::LookupSite;
 
-# Last updated May 27, 2010
+# Last updated July 11, 2012
 #
 # Author:       Irakliy Sunguryan ( www.sochi-travel.info )
 # Date Created: January 30, 2010
 
 use strict;
-#use warnings;
+use warnings;
 
 use vars qw($VERSION);
-$VERSION    = '0.06';
+$VERSION    = '0.07';
 
 use LWP::Simple;
 
@@ -26,9 +26,17 @@ sub new {
         _longDescr  => undef,
             # can be undef when site is present in catalog!
             # not all sites in the catalog have long description
-        _categories => []
+        _categories => [],
             # empty when site is not present in catalog
             # at least one entry when present in catalog
+        _orderNum   => undef,
+            # order number in the sub-category of catalog; "main" subcategory,
+            # when there are more than one.
+            # defined only when site is present in catalog; undef otherwise
+        _uri        => undef,
+            # URI as it is recorded in catalog. for example with/without 'www' prefix
+            # or it can be recorded with totally different address (narod.ru -> narod.yandex.ru)
+            # defined only when site is present in catalog; undef otherwise
     };
     bless $self, $class;
     return $self;
@@ -39,6 +47,7 @@ sub new {
 # "yaca" - Yandex Catalog
 sub yaca_lookup {
     my $self = shift;
+
     my $address = shift || return;
 
     # an $address is nomally a domain name (whatever level), but can include path too.
@@ -58,46 +67,43 @@ sub yaca_lookup {
 
     return unless defined $contents;
 
-    if( $contents =~ /<p class="errmsg">/ ) {
-        # It's not in the catalog, but tIC is displayed or reported as < 10:
-        #   Индекс цитирования (тИЦ) ресурса меньше 10.         (under 10)
-        #   Индекс цитирования (тИЦ) ресурса — 10               (equals to 10)
-        ( $self->{_tic} ) = $contents =~ /<p class="errmsg">.*?<b>.*?(\d+)</s;
+    if( $contents =~ /<p class="b-cy_error-cy">/ ) {
+        # "ресурс не описан в Яндекс.Каталоге"
+        # It's not in the catalog, but tIC is always displayed.
+        # Ex.: Индекс цитирования (тИЦ) ресурса — 10
+        ( $self->{_tic} ) = $contents =~ /<p class="b-cy_error-cy">.*?\s(\d+)/s;
         $self->{_tic} = 0 unless defined $self->{_tic};
         }
     else {
-        my( $entry ) = $contents =~ qr{(<td class="current".*?\d+</td>)}s;
+        my( $entry ) = $contents =~ qr{(<tr>\s*<td><img.*/arr-hilite\.gif".*?</tr>)}s;
         
-        ( $self->{_shortDescr}, undef, $self->{_longDescr}, $self->{_tic} ) = 
-            #                  $1         $2    $3             $4
-            $entry =~ qr{<a.*>(.*)</a>.*?(<div>(.*)</div>.*?)?(\d+)<}s;
-
-        # it's possible for Yandex to find site under a different address! 
-        #    for example, "narod.ru" becomes "narod.yandex.ru"
-        # TODO: catch URI as yandex sees it; return as last item in the array
+        ( $self->{_orderNum}, $self->{_uri}, $self->{_shortDescr}, undef, $self->{_longDescr}, $self->{_tic} ) = 
+            #                  $1                       $2        $3            $4             $5
+            $entry =~ qr{<td>(\d+)\.\s*</td>.*<a href="(.*?)".*?>(.*)</a>(<div>(.*)</div>.*?)?(\d+)<}s;
 
         # main catalog
-        ( $entry ) = $contents =~ qr{<div class="path2root">(.*?)</div>}s;
-        if( $entry ) {
-            $entry =~ s{</?a.*?>|</?h1>|\n}{}gs; # remove A, H1 tags and newline
-            $entry =~ s{\x{041A}\x{0430}\x{0442}\x{0430}\x{043B}\x{043E}\x{0433} / }{};
-                # removed "Каталог" - we know it's in the catalog
-            push( @{$self->{_categories}}, $entry ) if $entry;
+        my( $path, $rubric ) = $contents =~ qr{<div class="b-path">(.*?)</div>\s*<h1.*?><a.*?>(.*?)</a>}s;
+        if( $path ) {
+            $path =~ s{</?a.*?>|</?h1>|\n}{}gs; # remove A, H1 tags and newline
+            $path =~ s|\x{0420}\x{0443}\x{0431}\x{0440}\x{0438}\x{043A}\x{0438} / ||;
+                # removed "Рубрики" - it always starts with it
+                # http://www.rishida.net/tools/conversion/
+            push( @{$self->{_categories}}, $path.' / '.$rubric ) if $entry;
         }
 
         # additional catalogs
-        ( $entry ) = $contents =~ qr{<dl class="cat-links">.*?(<a.*?>.*</a>).*?</dd></dl>}s;
+        ( $entry ) = $contents =~ qr{<div class="b-cy_links">(.*?)</div>}s;
         if( $entry ) {
-            while( $entry =~ s{<a.*?>(.*?)</a>.*?(<a|$)}{$2}s ) {
-                my $path = $1;
-                $path =~ s{\x{041A}\x{0430}\x{0442}\x{0430}\x{043B}\x{043E}\x{0433} / }{};
+            while( $entry =~ s{<a.*?>(.*?)</a></p>.*?(<a|$)}{$2}s ) {
+                my $catPath = $1;
+                $catPath =~ s|\x{041A}\x{0430}\x{0442}\x{0430}\x{043B}\x{043E}\x{0433} / ||;
                     # removed "Каталог" - we know it's in the catalog
-                push( @{$self->{_categories}}, $path ) if $path;
+                push( @{$self->{_categories}}, $catPath ) if $catPath;
             }
         }
     }
 
-    return [ $self->{_tic}, $self->{_shortDescr}, $self->{_longDescr}, $self->{_categories} ];
+    return [ $self->{_tic}, $self->{_shortDescr}, $self->{_longDescr}, $self->{_categories}, $self->{_uri}, $self->{_orderNum} ];
 }
 
 
@@ -126,6 +132,16 @@ sub long_description {
 sub categories {
     my $self = shift;
     return $self->{_categories};
+}
+
+sub order_number {
+    my $self = shift;
+    return $self->{_orderNum};
+}
+
+sub uri {
+    my $self = shift;
+    return $self->{_uri};
 }
 
 1;
