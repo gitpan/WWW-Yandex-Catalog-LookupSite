@@ -262,6 +262,14 @@ Self explanatory. This comment is here to shut the podchecker up.
         print "$_\n" foreach @{$site->categories};
     }
 
+=head2 $site-E<gt>order_number
+
+TBD
+
+=head2 $site-E<gt>uri
+
+TBD
+
 
 =head1 AUTHOR
 
